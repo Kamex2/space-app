@@ -1,0 +1,418 @@
+:root {
+  --hud-bg: rgba(12, 16, 26, 0.82);
+  --hud-border: rgba(120, 160, 220, 0.18);
+  --accent: #66ffcc;
+  --accent-dim: #3fae95;
+  --text: #dfe6f2;
+  --text-dim: #9fb0c8;
+  color-scheme: dark;
+  font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: var(--text);
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+}
+
+.scene-container {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---- Planet labels (CSS2D) ---- */
+.planet-label {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-shadow: 0 0 4px #000, 0 0 8px #000;
+  pointer-events: none;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+}
+.sun-label {
+  color: #ffd766;
+  font-size: 15px;
+}
+.craft-label {
+  color: var(--accent);
+}
+
+/* ---- HUD scaffolding ---- */
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hud-panel {
+  position: absolute;
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+
+.hud-top {
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 340px;
+  text-align: center;
+}
+.hud-right {
+  top: 16px;
+  right: 16px;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+.hud-records {
+  bottom: 16px;
+  right: 16px;
+  width: 260px;
+}
+.hud-bottom {
+  bottom: 16px;
+  left: 16px;
+  width: 320px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.date-label {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 8px;
+}
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+}
+.speed-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  min-width: 130px;
+  text-align: left;
+}
+
+/* ---- Controls ---- */
+.btn {
+  background: rgba(60, 80, 120, 0.35);
+  color: var(--text);
+  border: 1px solid var(--hud-border);
+  border-radius: 7px;
+  padding: 7px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn:hover {
+  background: rgba(90, 120, 180, 0.5);
+  border-color: var(--accent-dim);
+}
+.btn.wide {
+  width: 100%;
+  text-align: center;
+}
+.btn.launch {
+  background: rgba(60, 174, 149, 0.35);
+  border-color: var(--accent-dim);
+  font-weight: 700;
+  margin-top: 8px;
+}
+.btn.launch:hover {
+  background: rgba(102, 255, 204, 0.4);
+}
+
+input[type='date'] {
+  background: rgba(30, 40, 60, 0.6);
+  color: var(--text);
+  border: 1px solid var(--hud-border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent-dim);
+}
+
+/* ---- Panels ---- */
+.panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 4px 0 6px;
+  border-bottom: 1px solid var(--hud-border);
+  padding-bottom: 4px;
+}
+.info-panel,
+.records-panel,
+.flyby-list {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.info-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.info-desc {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.info-divider {
+  border-top: 1px solid var(--hud-border);
+  margin: 7px 0;
+}
+.info-fact {
+  background: rgba(255, 215, 102, 0.08);
+  border-left: 2px solid #ffd766;
+  border-radius: 4px;
+  padding: 5px 8px;
+  margin-top: 8px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--text);
+}
+.now-fireball {
+  background: rgba(255, 150, 60, 0.1);
+  border-left: 2px solid #ff9633;
+  border-radius: 4px;
+  padding: 5px 8px;
+  margin: 6px 0;
+  color: var(--text);
+}
+.info-row,
+.record-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 0;
+}
+.info-row span:last-child,
+.record-row span:last-child {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.slider-wrap {
+  margin: 8px 0;
+}
+.slider-label {
+  font-size: 12.5px;
+  margin-bottom: 3px;
+  color: var(--text);
+}
+.flyby-row {
+  background: rgba(255, 255, 102, 0.08);
+  border-left: 2px solid #ffff66;
+  padding: 5px 8px;
+  margin: 5px 0;
+  border-radius: 4px;
+  color: var(--text);
+}
+
+/* ---- Design-panel tabs ---- */
+.tab-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.tab {
+  flex: 1;
+  background: rgba(40, 55, 85, 0.35);
+  color: var(--text-dim);
+  border: 1px solid var(--hud-border);
+  border-radius: 7px;
+  padding: 6px 8px;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.tab:hover {
+  background: rgba(90, 120, 180, 0.4);
+}
+.tab.active {
+  background: rgba(60, 174, 149, 0.3);
+  color: var(--text);
+  border-color: var(--accent-dim);
+  font-weight: 700;
+}
+
+/* ---- Porkchop plot ---- */
+.pc-status {
+  font-size: 11.5px;
+  color: var(--accent);
+  margin-left: auto;
+  white-space: nowrap;
+}
+select {
+  background: rgba(30, 40, 60, 0.6);
+  color: var(--text);
+  border: 1px solid var(--hud-border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+.pc-canvas {
+  display: block;
+  width: 100%;
+  margin: 8px 0 4px;
+  border-radius: 6px;
+  cursor: crosshair;
+}
+.pc-readout {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  min-height: 34px;
+}
+.transfer-summary {
+  background: rgba(102, 170, 255, 0.1);
+  border-left-color: #66aaff;
+}
+
+/* ---- Pilot mode ---- */
+.hud-pilot {
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 340px;
+  text-align: center;
+}
+.pilot-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+  padding: 2px 0;
+}
+.pilot-row span:last-child {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.pilot-keys {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* ---- Live "now" panel ---- */
+.hud-now {
+  top: 16px;
+  left: 16px;
+  width: 250px;
+}
+.now-neo {
+  background: rgba(255, 85, 68, 0.1);
+  border-left: 2px solid #ff5544;
+  border-radius: 4px;
+  padding: 5px 8px;
+  margin: 6px 0;
+  color: var(--text);
+}
+.now-panel {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+.now-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+}
+.now-row span:last-child {
+  color: var(--text);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.now-shower {
+  background: rgba(102, 255, 204, 0.08);
+  border-left: 2px solid var(--accent-dim);
+  border-radius: 4px;
+  padding: 5px 8px;
+  margin: 6px 0;
+  color: var(--text);
+}
+.now-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* ---- Live button / small-body labels / 4D caption ---- */
+.btn.live.active {
+  background: rgba(226, 75, 74, 0.4);
+  border-color: #e24b4a;
+  font-weight: 700;
+}
+.small-label {
+  font-size: 10.5px;
+  font-weight: 400;
+  opacity: 0.85;
+}
+.st-caption {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  padding: 2px 2px 4px;
+}
+
+/* ---- Craft telemetry ---- */
+.craft-panel {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+/* ---- Help box ---- */
+.help-box {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(12, 16, 26, 0.7);
+  border: 1px solid var(--hud-border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 1s;
+  opacity: 1;
+}
+.help-box.fade {
+  opacity: 0;
+}
