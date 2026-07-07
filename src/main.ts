@@ -44,7 +44,8 @@ const sceneContainer = document.createElement('div');
 sceneContainer.className = 'scene-container';
 app.appendChild(sceneContainer);
 
-let currentJD = dateToJulian(new Date(Date.UTC(2000, 0, 1)));
+// 起動時は今日（ライブ）の日付から始める。
+let currentJD = clampJD(dateToJulian(new Date()));
 
 const hud = buildHud(
   app,
@@ -737,4 +738,6 @@ function animate() {
 // initialise labels + first frame
 setJD(currentJD, true);
 hud.dateLabel.textContent = formatJDDate(currentJD);
+// URLを開いたら今日の日付から自動で再生を開始する。
+setPlaying(true);
 animate();
