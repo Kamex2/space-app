@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ローカルの拡張版作業コピー（リポジトリには含めない）
+宇宙拡張app/
+宇宙拡張app.zip

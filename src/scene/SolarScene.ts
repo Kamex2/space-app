@@ -1392,6 +1392,11 @@ export class SolarScene {
     this.composer.setSize(window.innerWidth, window.innerHeight);
   };
 
+  /** Re-apply viewport sizing (e.g. after returning from cosmos mode). */
+  onResizePublic() {
+    this.onResize();
+  }
+
   /** Called every animation frame. */
   render(dtSec = 0.016) {
     this.elapsed += dtSec;

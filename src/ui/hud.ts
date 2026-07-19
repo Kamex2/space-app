@@ -1,4 +1,3 @@
-import { PLANET_NAME_JA, PLANET_ORDER, type PlanetKey } from '../data/planetElements';
 import { formatJDInput } from './format';
 
 /** Small helper to create an element with class + text. */
@@ -23,12 +22,12 @@ export interface HudElements {
   liveBtn: HTMLButtonElement;
   speedSlider: HTMLInputElement;
   speedLabel: HTMLElement;
-  // right: mode / scale / info
-  modeBtn: HTMLButtonElement;
+  // right: view / scale / info
   scaleBtn: HTMLButtonElement;
   sizeBtn: HTMLButtonElement;
   smallBodiesBtn: HTMLButtonElement;
   backToSunBtn: HTMLButtonElement;
+  enterCosmosBtn: HTMLButtonElement;
   view3dBtn: HTMLButtonElement;
   view2dBtn: HTMLButtonElement;
   view4dBtn: HTMLButtonElement;
@@ -37,30 +36,6 @@ export interface HudElements {
   infoPanel: HTMLElement;
   // left: live "now" panel
   nowPanel: HTMLElement;
-  // bottom: design panel with tabs
-  swingbyPanel: HTMLElement;
-  tabManualBtn: HTMLButtonElement;
-  tabPorkchopBtn: HTMLButtonElement;
-  manualPane: HTMLElement;
-  porkchopPane: HTMLElement;
-  vInfSlider: HTMLInputElement;
-  vInfLabel: HTMLElement;
-  inPlaneSlider: HTMLInputElement;
-  inPlaneLabel: HTMLElement;
-  outPlaneSlider: HTMLInputElement;
-  outPlaneLabel: HTMLElement;
-  launchBtn: HTMLButtonElement;
-  // porkchop
-  pcTargetSelect: HTMLSelectElement;
-  pcStatus: HTMLElement;
-  pcCanvas: HTMLCanvasElement;
-  pcReadout: HTMLElement;
-  pcLaunchBtn: HTMLButtonElement;
-  // shared flyby readout
-  flybyList: HTMLElement;
-  // right column extras
-  recordsPanel: HTMLElement;
-  craftPanel: HTMLElement;
   // pilot mode
   pilotBtn: HTMLButtonElement;
   pilotPanel: HTMLElement;
@@ -107,7 +82,7 @@ export function buildHud(
   top.append(dateLabel, timeRow, speedRow);
   root.appendChild(top);
 
-  // ---- Right panel: view / mode / scale / info ----------------------------
+  // ---- Right panel: view / scale / info ----------------------------------
   const right = el('div', 'hud-panel hud-right');
 
   const viewRow = el('div', 'tab-row');
@@ -125,7 +100,8 @@ export function buildHud(
   );
   stCaption.style.display = 'none';
 
-  const modeBtn = el('button', 'btn wide', '設計モードへ切替') as HTMLButtonElement;
+  const enterCosmosBtn = el('button', 'btn wide enter-cosmos', '🌌 大宇宙へ出発') as HTMLButtonElement;
+  enterCosmosBtn.title = '太陽系をこえて銀河・星雲・多元宇宙を探索する';
   const pilotBtn = el('button', 'btn wide launch', '🚀 宇宙船モード') as HTMLButtonElement;
   const scaleBtn = el('button', 'btn wide', 'スケール: 圧縮') as HTMLButtonElement;
   const sizeBtn = el('button', 'btn wide', '惑星サイズ: 誇張') as HTMLButtonElement;
@@ -139,7 +115,7 @@ export function buildHud(
     viewRow,
     galacticBtn,
     stCaption,
-    modeBtn,
+    enterCosmosBtn,
     pilotBtn,
     scaleBtn,
     sizeBtn,
@@ -155,97 +131,12 @@ export function buildHud(
   pilotPanel.style.display = 'none';
   root.appendChild(pilotPanel);
 
-  // ---- Records + craft telemetry ------------------------------------------
-  const recordsWrap = el('div', 'hud-panel hud-records');
-  recordsWrap.append(el('div', 'panel-title', '最接近距離の記録'));
-  const recordsPanel = el('div', 'records-panel', '（設計モードで探査機を飛ばすと記録されます）');
-  recordsWrap.append(recordsPanel);
-  const craftPanel = el('div', 'craft-panel');
-  craftPanel.style.display = 'none';
-  recordsWrap.append(craftPanel);
-  root.appendChild(recordsWrap);
-
   // ---- Live "now" panel ----------------------------------------------------
   const nowWrap = el('div', 'hud-panel hud-now');
   nowWrap.append(el('div', 'panel-title', 'いま、地球は'));
   const nowPanel = el('div', 'now-panel');
   nowWrap.append(nowPanel);
   root.appendChild(nowWrap);
-
-  // ---- Bottom panel: design (tabs: manual / porkchop) ---------------------
-  const bottom = el('div', 'hud-panel hud-bottom');
-  bottom.append(el('div', 'panel-title', '軌道設計（地球出発）'));
-
-  const tabRow = el('div', 'tab-row');
-  const tabManualBtn = el('button', 'tab active', '手動設計') as HTMLButtonElement;
-  const tabPorkchopBtn = el('button', 'tab', 'ポークチョップ') as HTMLButtonElement;
-  tabRow.append(tabManualBtn, tabPorkchopBtn);
-  bottom.append(tabRow);
-
-  // -- manual pane
-  const manualPane = el('div', 'pane');
-  const mkSlider = (
-    labelText: string,
-    min: number,
-    max: number,
-    step: number,
-    value: number,
-  ) => {
-    const wrap = el('div', 'slider-wrap');
-    const lab = el('div', 'slider-label', labelText);
-    const s = el('input') as HTMLInputElement;
-    s.type = 'range';
-    s.min = String(min);
-    s.max = String(max);
-    s.step = String(step);
-    s.value = String(value);
-    wrap.append(lab, s);
-    return { wrap, lab, s };
-  };
-
-  const vInf = mkSlider('出発余剰速度 v∞: 6.0 km/s', 0.5, 16, 0.1, 6.0);
-  const inP = mkSlider('面内角度: 0°', -180, 180, 1, 0);
-  const outP = mkSlider('面外角度: 0°', -45, 45, 1, 0);
-  const launchBtn = el('button', 'btn wide launch', '発射') as HTMLButtonElement;
-  manualPane.append(vInf.wrap, inP.wrap, outP.wrap, launchBtn);
-
-  // -- porkchop pane
-  const porkchopPane = el('div', 'pane');
-  porkchopPane.style.display = 'none';
-
-  const targetRow = el('div', 'row');
-  targetRow.append(el('span', 'slider-label', '目標:'));
-  const pcTargetSelect = el('select') as HTMLSelectElement;
-  for (const key of PLANET_ORDER) {
-    if (key === 'earth') continue;
-    const opt = document.createElement('option');
-    opt.value = key;
-    opt.textContent = PLANET_NAME_JA[key];
-    if (key === 'mars') opt.selected = true;
-    pcTargetSelect.appendChild(opt);
-  }
-  const pcStatus = el('span', 'pc-status', '');
-  targetRow.append(pcTargetSelect, pcStatus);
-
-  const pcCanvas = document.createElement('canvas');
-  pcCanvas.className = 'pc-canvas';
-  pcCanvas.width = 360;
-  pcCanvas.height = 235;
-
-  const pcReadout = el(
-    'div',
-    'pc-readout',
-    'ヒートマップをクリックすると転送軌道をプレビューします（横軸: 出発日 / 縦軸: 飛行日数、色: 出発v∞）',
-  );
-  const pcLaunchBtn = el('button', 'btn wide launch', 'この軌道で発射') as HTMLButtonElement;
-  pcLaunchBtn.disabled = true;
-
-  porkchopPane.append(targetRow, pcCanvas, pcReadout, pcLaunchBtn);
-
-  const flybyList = el('div', 'flyby-list', 'スライダーを動かすと予測軌道が更新されます。');
-  bottom.append(manualPane, porkchopPane, flybyList);
-  root.appendChild(bottom);
-  bottom.style.display = 'none'; // hidden until design mode
 
   // ---- Help box (first-time hints) ---------------------------------------
   const helpBox = el('div', 'help-box');
@@ -262,11 +153,11 @@ export function buildHud(
     liveBtn,
     speedSlider,
     speedLabel,
-    modeBtn,
     scaleBtn,
     sizeBtn,
     smallBodiesBtn,
     backToSunBtn,
+    enterCosmosBtn,
     view3dBtn,
     view2dBtn,
     view4dBtn,
@@ -274,54 +165,13 @@ export function buildHud(
     stCaption,
     infoPanel,
     nowPanel,
-    swingbyPanel: bottom,
-    tabManualBtn,
-    tabPorkchopBtn,
-    manualPane,
-    porkchopPane,
-    vInfSlider: vInf.s,
-    vInfLabel: vInf.lab,
-    inPlaneSlider: inP.s,
-    inPlaneLabel: inP.lab,
-    outPlaneSlider: outP.s,
-    outPlaneLabel: outP.lab,
-    launchBtn,
-    pcTargetSelect,
-    pcStatus,
-    pcCanvas,
-    pcReadout,
-    pcLaunchBtn,
-    flybyList,
-    recordsPanel,
-    craftPanel,
     pilotBtn,
     pilotPanel,
     helpBox,
   };
 }
 
-/** Render the min-approach records table. */
-export function renderRecords(
-  panel: HTMLElement,
-  minApproach: Partial<Record<PlanetKey, number>>,
-): void {
-  const outer: PlanetKey[] = ['mars', 'jupiter', 'saturn', 'uranus', 'neptune'];
-  const rows = outer
-    .filter((p) => minApproach[p] !== undefined)
-    .map((p) => {
-      const d = minApproach[p] as number;
-      return `<div class="record-row"><span>${PLANET_NAME_JA[p]}</span><span>${d.toFixed(
-        3,
-      )} AU まで接近!</span></div>`;
-    });
-  panel.innerHTML = rows.length
-    ? rows.join('')
-    : '（まだ外惑星への接近記録はありません）';
-}
-
 /** Utility to update a date input from a JD. */
 export function setDateInput(input: HTMLInputElement, jd: number): void {
   input.value = formatJDInput(jd);
 }
-
-export { PLANET_ORDER };
